@@ -2,6 +2,8 @@ import ast
 import os
 from pathlib import Path
 from difflib import SequenceMatcher
+from pydantic import BaseModel
+import evaluate
 
 """ gold directory structure will have
 gold_dir / {repo}
@@ -14,6 +16,12 @@ the repo structures will be IDENTICAL
 
 gold_dir = Path("/Users/justinchiu/code/commit0/repos")
 prediction_dir = Path("/Users/justinchiu/code/commit0-analysis/sonnet_output")
+
+class Function(BaseModel):
+    code: str
+    name: str
+    docstring: str
+    body: str
 
 # use this function to extract the functions
 def extract_functions_with_docstring(filename):
@@ -34,28 +42,44 @@ def extract_functions_with_docstring(filename):
         file_content = file.read()
 
     # Parse the content of the file into an AST
-    tree = ast.parse(file_content)
+    try:
+        tree = ast.parse(file_content)
 
-    # Dictionary to store functions with docstrings
-    function_dict = {}
+        # Dictionary to store functions with docstrings
+        function_dict = {}
 
-    # Iterate over the nodes of the AST
-    for node in ast.walk(tree):
-        # We're only interested in function definitions
-        if isinstance(node, ast.FunctionDef):
-            # Check if the function has a docstring
-            docstring = ast.get_docstring(node)
-            if docstring:
-                # Get the function name (id)
-                function_name = node.name
-                
-                # Extract the full source code of the function
-                function_code = ast.get_source_segment(file_content, node)
-                
-                # Add the function to the dictionary
-                function_dict[function_name] = function_code
+        # Iterate over the nodes of the AST
+        for node in ast.walk(tree):
+            # We're only interested in function definitions
+            if isinstance(node, ast.FunctionDef):
+                # Check if the function has a docstring
+                docstring = ast.get_docstring(node)
+                if docstring:
+                    # Get the function name (id)
+                    function_name = node.name
+                    # Extract the full source code of the function
+                    function_code = ast.get_source_segment(file_content, node)
+                    if (
+                        isinstance(node.body[0], ast.Expr)
+                        and isinstance(node.body[0].value, ast.Constant)
+                        and isinstance(node.body[0].value.value, str)
+                    ):
+                        body_nodes = node.body[1:]
+                    else:
+                        body_nodes = node.body
+                    body = ast.unparse(body_nodes)
+                    # Add the function to the dictionary
+                    function_dict[function_name] = Function(
+                        code=function_code,
+                        name=function_name,
+                        docstring=docstring,
+                        body=body,
+                    )
 
-    return function_dict
+        return function_dict
+    except:
+        print("Could not process", filename)
+        return {}
 
 def process_directory(directory):
     """
@@ -82,22 +106,33 @@ def main():
     gold_functions = process_directory(gold_dir)
     prediction_functions = process_directory(prediction_dir)
 
-    total_overlap = 0
-    total_functions = 0
+    num_f = 0
+    exact_matches = 0
+    bleu = evaluate.load("bleu")
+
+    predictions = []
+    references = []
 
     for repo in gold_functions:
         if repo in prediction_functions:
             for func_name, gold_func in gold_functions[repo].items():
                 if func_name in prediction_functions[repo]:
-                    gold_docstring = ast.get_docstring(ast.parse(gold_func))
-                    pred_docstring = ast.get_docstring(ast.parse(prediction_functions[repo][func_name]))
-                    
-                    if gold_docstring and pred_docstring:
-                        overlap = calculate_overlap(gold_docstring, pred_docstring)
-                        total_overlap += overlap
-                        total_functions += 1
-                        print(f"Repo: {repo}, Function: {func_name}, Overlap: {overlap:.2f}")
+                    pred_func = prediction_functions[repo][func_name]
 
+                    gb = gold_func.body
+                    pb = pred_func.body
+
+                    if gb == pb:
+                        exact_matches += 1
+                    num_f += 1
+
+                    predictions.append(pb)
+                    references.append([gb])
+
+    results = bleu.compute(predictions=predictions, references=references)
+    print(results)
+    print(f"Num exact matches: {exact_matches} / {num_f} total")
+    import pdb; pdb.set_trace()
     if total_functions > 0:
         average_overlap = total_overlap / total_functions
         print(f"\nAverage overlap across all functions: {average_overlap:.2f}")
