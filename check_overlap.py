@@ -4,6 +4,7 @@ from pathlib import Path
 from difflib import SequenceMatcher
 from pydantic import BaseModel
 import evaluate
+import json
 
 """ gold directory structure will have
 gold_dir / {repo}
@@ -103,6 +104,8 @@ def calculate_overlap(str1, str2):
     return SequenceMatcher(None, str1, str2).ratio()
 
 def main():
+    # TODO: average by repo
+    # analysis of length distribution for match vs not
     gold_functions = process_directory(gold_dir)
     prediction_functions = process_directory(prediction_dir)
 
@@ -112,6 +115,8 @@ def main():
 
     predictions = []
     references = []
+
+    data = []
 
     for repo in gold_functions:
         if repo in prediction_functions:
@@ -129,15 +134,31 @@ def main():
                     predictions.append(pb)
                     references.append([gb])
 
+                    data.append({
+                        "repo": repo,
+                        "name": gold_func.name,
+                        "docstring": gold_func.docstring,
+                        "pred_docstring": pred_func.docstring,
+                        "body": gold_func.body,
+                        "pred_body": pred_func.body,
+                    })
+
+                    """
+                    print(repo, gold_func.name)
+                    print(gold_func.docstring)
+                    print("GOLD BODY")
+                    print(gb)
+                    print("PRED BODY")
+                    print(pb)
+                    print("MATCH:", gb == pb)
+                    """
+
     results = bleu.compute(predictions=predictions, references=references)
     print(results)
     print(f"Num exact matches: {exact_matches} / {num_f} total")
-    import pdb; pdb.set_trace()
-    if total_functions > 0:
-        average_overlap = total_overlap / total_functions
-        print(f"\nAverage overlap across all functions: {average_overlap:.2f}")
-    else:
-        print("No matching functions with docstrings found.")
+    output = json.dumps(data)
+    with open("results.json", "w") as f:
+        f.write(output)
 
 if __name__ == "__main__":
     main()
