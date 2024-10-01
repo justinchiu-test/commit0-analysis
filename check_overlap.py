@@ -1,5 +1,7 @@
 import ast
+import os
 from pathlib import Path
+from difflib import SequenceMatcher
 
 """ gold directory structure will have
 gold_dir / {repo}
@@ -55,9 +57,52 @@ def extract_functions_with_docstring(filename):
 
     return function_dict
 
-def main():
-    print("Hello from commit0-analysis!")
+def process_directory(directory):
+    """
+    Process all Python files in a directory and extract functions with docstrings.
+    """
+    all_functions = {}
+    for root, _, files in os.walk(directory):
+        for file in files:
+            if file.endswith('.py'):
+                file_path = os.path.join(root, file)
+                relative_path = os.path.relpath(file_path, directory)
+                functions = extract_functions_with_docstring(file_path)
+                if functions:
+                    all_functions[relative_path] = functions
+    return all_functions
 
+def calculate_overlap(str1, str2):
+    """
+    Calculate the overlap between two strings using SequenceMatcher.
+    """
+    return SequenceMatcher(None, str1, str2).ratio()
+
+def main():
+    gold_functions = process_directory(gold_dir)
+    prediction_functions = process_directory(prediction_dir)
+
+    total_overlap = 0
+    total_functions = 0
+
+    for repo in gold_functions:
+        if repo in prediction_functions:
+            for func_name, gold_func in gold_functions[repo].items():
+                if func_name in prediction_functions[repo]:
+                    gold_docstring = ast.get_docstring(ast.parse(gold_func))
+                    pred_docstring = ast.get_docstring(ast.parse(prediction_functions[repo][func_name]))
+                    
+                    if gold_docstring and pred_docstring:
+                        overlap = calculate_overlap(gold_docstring, pred_docstring)
+                        total_overlap += overlap
+                        total_functions += 1
+                        print(f"Repo: {repo}, Function: {func_name}, Overlap: {overlap:.2f}")
+
+    if total_functions > 0:
+        average_overlap = total_overlap / total_functions
+        print(f"\nAverage overlap across all functions: {average_overlap:.2f}")
+    else:
+        print("No matching functions with docstrings found.")
 
 if __name__ == "__main__":
     main()
