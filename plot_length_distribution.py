@@ -17,7 +17,7 @@ def process_data(data, tokenizer):
             'repo': item['repo'],
             'body_length': tokenize_text(item['body'], tokenizer),
             'pred_body_length': tokenize_text(item['pred_body'], tokenizer),
-            'match': 'Match' if item['body'] == item['pred_body'] else 'No Match'
+            'match': 'Exact Match' if item['body'] == item['pred_body'] else 'No Match'
         })
     return pd.DataFrame(processed_data)
 
@@ -31,7 +31,7 @@ def plot_distribution(df):
         ).encode(
             alt.X('body_length:Q', bin=alt.Bin(maxbins=30), title='Body Length'),
             alt.Y('count():Q', stack=None, title='Count'),
-            alt.Color('match:N', legend=alt.Legend(title='Match'))
+            alt.Color('match:N', legend=alt.Legend(title='Match Type'))
         ).properties(
             title=f'Distribution of Function Body Length for {repo}',
             width=500,
