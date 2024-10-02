@@ -47,7 +47,7 @@ def plot_distribution(df):
         chart_length.save(f'plots/length_distribution_{repo}.pdf')
 
         # BLEU Score Distribution
-        base_bleu = alt.Chart(repo_df).mark_area(
+        bleu = alt.Chart(repo_df).mark_area(
             opacity=0.5,
             interpolate='step'
         ).encode(
@@ -59,11 +59,7 @@ def plot_distribution(df):
             height=300
         )
 
-        chart_bleu = base_bleu.encode(
-            alt.X('sentence_bleu:Q', bin=alt.Bin(maxbins=30), title='BLEU Score')
-        )
-
-        chart_bleu.save(f'plots/bleu_distribution_{repo}.pdf')
+        bleu.save(f'plots/bleu_distribution_{repo}.pdf')
 
 def main():
     # Load the Sonnet tokenizer
