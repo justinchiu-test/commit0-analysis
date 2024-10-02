@@ -7,6 +7,7 @@ import evaluate
 import json
 from nltk.translate.bleu_score import sentence_bleu
 from nltk.tokenize import word_tokenize
+from nltk.util import ngrams
 
 """ gold directory structure will have
 gold_dir / {repo}
@@ -110,6 +111,21 @@ def calculate_overlap(str1, str2):
     """
     return SequenceMatcher(None, str1, str2).ratio()
 
+def calculate_ngram_overlap(text1, text2, n=5):
+    """
+    Calculate the n-gram overlap between two texts.
+    """
+    tokens1 = word_tokenize(text1)
+    tokens2 = word_tokenize(text2)
+    
+    ngrams1 = set(ngrams(tokens1, n))
+    ngrams2 = set(ngrams(tokens2, n))
+    
+    overlap = len(ngrams1.intersection(ngrams2))
+    total = len(ngrams1.union(ngrams2))
+    
+    return overlap / total if total > 0 else 0
+
 def main():
     # TODO: average by repo
     # analysis of length distribution for match vs not
@@ -148,6 +164,9 @@ def main():
                     # Calculate sentence BLEU score
                     sentence_bleu_score = sentence_bleu(reference, candidate, smoothing_function=None)
 
+                    # Calculate 5-gram overlap
+                    five_gram_overlap = calculate_ngram_overlap(gold_func.body, pred_func.body, n=5)
+
                     data.append({
                         "repo": gold_func.repo,
                         "path": gold_func.path,
@@ -157,6 +176,7 @@ def main():
                         "body": gold_func.body,
                         "pred_body": pred_func.body,
                         "sentence_bleu": sentence_bleu_score,
+                        "five_gram_overlap": five_gram_overlap,
                     })
 
                     """
