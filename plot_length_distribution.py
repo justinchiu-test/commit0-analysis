@@ -69,7 +69,6 @@ def plot_distribution(df):
         ).encode(
             alt.X('body_length:Q', title='Length (tokens)'),
             alt.Y('five_gram_overlap:Q', title='5-gram Overlap'),
-            alt.Color('match:N', legend=alt.Legend(title='Match Type'))
         ).properties(
             title=f'5-gram Overlap versus Token Length for {repo}',
             width=500,
@@ -84,14 +83,13 @@ def plot_distribution(df):
         ).encode(
             alt.X('body_length:Q', title='Length (tokens)'),
             alt.Y('ten_gram_overlap:Q', title='10-gram Overlap'),
-            alt.Color('match:N', legend=alt.Legend(title='Match Type'))
         ).properties(
             title=f'10-gram Overlap versus Token Length for {repo}',
             width=500,
             height=300
         )
 
-        five_gram.save(f'plots/ten_gram_distribution_{repo}.pdf')
+        ten_gram.save(f'plots/ten_gram_distribution_{repo}.pdf')
 
 def main():
     # Load the Sonnet tokenizer
