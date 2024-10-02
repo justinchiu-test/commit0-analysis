@@ -17,7 +17,8 @@ def process_data(data, tokenizer):
             'repo': item['repo'],
             'body_length': tokenize_text(item['body'], tokenizer),
             'pred_body_length': tokenize_text(item['pred_body'], tokenizer),
-            'match': 'Exact Match' if item['body'] == item['pred_body'] else 'No Match'
+            'match': 'Exact Match' if item['body'] == item['pred_body'] else 'No Match',
+            'sentence_bleu': item['sentence_bleu']
         })
     return pd.DataFrame(processed_data)
 
@@ -25,7 +26,8 @@ def plot_distribution(df):
     for repo in df['repo'].unique():
         repo_df = df[df['repo'] == repo]
 
-        base = alt.Chart(repo_df).mark_area(
+        # Body Length Distribution
+        base_length = alt.Chart(repo_df).mark_area(
             opacity=0.5,
             interpolate='step'
         ).encode(
@@ -36,21 +38,33 @@ def plot_distribution(df):
             title=f'Distribution of Function Body Length for {repo}',
             width=500,
             height=300
-        ).configure_axis(
-            labelFontSize=15,
-            titleFontSize=18
-        ).configure_title(
-            fontSize=24
-        ).configure_legend(
-            labelFontSize=15,
-            titleFontSize=18
         )
 
-        chart = base.encode(
+        chart_length = base_length.encode(
             alt.X('body_length:Q', bin=alt.Bin(maxbins=30), title='Length (tokens)')
         )
 
-        chart.save(f'plots/length_distribution_{repo}.pdf')
+        chart_length.save(f'plots/length_distribution_{repo}.pdf')
+
+        # BLEU Score Distribution
+        base_bleu = alt.Chart(repo_df).mark_area(
+            opacity=0.5,
+            interpolate='step'
+        ).encode(
+            alt.X('sentence_bleu:Q', bin=alt.Bin(maxbins=30), title='BLEU Score'),
+            alt.Y('count():Q', stack=None, title='Count'),
+            alt.Color('match:N', legend=alt.Legend(title='Match Type'))
+        ).properties(
+            title=f'Distribution of BLEU Scores for {repo}',
+            width=500,
+            height=300
+        )
+
+        chart_bleu = base_bleu.encode(
+            alt.X('sentence_bleu:Q', bin=alt.Bin(maxbins=30), title='BLEU Score')
+        )
+
+        chart_bleu.save(f'plots/bleu_distribution_{repo}.pdf')
 
 def main():
     # Load the Sonnet tokenizer
@@ -60,10 +74,10 @@ def main():
     data = load_data('results.json')
     df = process_data(data, tokenizer)
 
-    # Plot the distribution
+    # Plot the distributions
     plot_distribution(df)
 
-    print("Plots saved as length_distribution_<repo>.pdf for each repo")
+    print("Plots saved as length_distribution_<repo>.pdf and bleu_distribution_<repo>.pdf for each repo")
 
 if __name__ == "__main__":
     main()
