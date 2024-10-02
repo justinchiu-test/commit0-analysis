@@ -19,7 +19,8 @@ def process_data(data, tokenizer):
             'pred_body_length': tokenize_text(item['pred_body'], tokenizer),
             'match': 'Exact Match' if item['body'] == item['pred_body'] else 'No Match',
             'sentence_bleu': item['sentence_bleu'],
-            'five_gram_overlap': item['five_gram_overlap']
+            'five_gram_overlap': item['five_gram_overlap'],
+            'ten_gram_overlap': item['ten_gram_overlap']
         })
     return pd.DataFrame(processed_data)
 
@@ -76,6 +77,21 @@ def plot_distribution(df):
         )
 
         five_gram.save(f'plots/five_gram_distribution_{repo}.pdf')
+
+        # 10-gram Overlap Distribution
+        ten_gram = alt.Chart(repo_df).mark_point(
+            opacity=0.5
+        ).encode(
+            alt.X('body_length:Q', title='Length (tokens)'),
+            alt.Y('ten_gram_overlap:Q', title='10-gram Overlap'),
+            alt.Color('match:N', legend=alt.Legend(title='Match Type'))
+        ).properties(
+            title=f'10-gram Overlap versus Token Length for {repo}',
+            width=500,
+            height=300
+        )
+
+        five_gram.save(f'plots/ten_gram_distribution_{repo}.pdf')
 
 def main():
     # Load the Sonnet tokenizer

@@ -105,11 +105,6 @@ def process_directory(directory):
                     all_functions[relative_path] = functions
     return all_functions
 
-def calculate_overlap(str1, str2):
-    """
-    Calculate the overlap between two strings using SequenceMatcher.
-    """
-    return SequenceMatcher(None, str1, str2).ratio()
 
 def calculate_ngram_overlap(text1, text2, n=5):
     """
@@ -166,6 +161,7 @@ def main():
 
                     # Calculate 5-gram overlap
                     five_gram_overlap = calculate_ngram_overlap(gold_func.body, pred_func.body, n=5)
+                    ten_gram_overlap = calculate_ngram_overlap(gold_func.body, pred_func.body, n=10)
 
                     data.append({
                         "repo": gold_func.repo,
@@ -177,6 +173,7 @@ def main():
                         "pred_body": pred_func.body,
                         "sentence_bleu": sentence_bleu_score,
                         "five_gram_overlap": five_gram_overlap,
+                        "ten_gram_overlap": ten_gram_overlap,
                     })
 
                     """
