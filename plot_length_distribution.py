@@ -35,11 +35,11 @@ def plot_distribution(df):
         labelAngle=45
     )
 
-    chart.save('length_distribution.html')
+    chart.save('length_distribution.pdf')
 
 def main():
     # Load the Sonnet tokenizer
-    tokenizer = AutoTokenizer.from_pretrained("facebook/bart-large")
+    tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.1-70B-Instruct")
 
     # Load and process the data
     data = load_data('results.json')
