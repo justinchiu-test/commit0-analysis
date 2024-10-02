@@ -19,13 +19,15 @@ gold_dir = Path("/Users/justinchiu/code/commit0/repos")
 prediction_dir = Path("/Users/justinchiu/code/commit0-analysis/sonnet_output")
 
 class Function(BaseModel):
+    repo: str
+    path: str
     code: str
     name: str
     docstring: str
     body: str
 
 # use this function to extract the functions
-def extract_functions_with_docstring(filename):
+def extract_functions_with_docstring(filename, repo, path):
     """
     Example usage
     ```
@@ -71,6 +73,8 @@ def extract_functions_with_docstring(filename):
                     body = ast.unparse(body_nodes)
                     # Add the function to the dictionary
                     function_dict[function_name] = Function(
+                        repo=repo,
+                        path=path,
                         code=function_code,
                         name=function_name,
                         docstring=docstring,
@@ -92,7 +96,8 @@ def process_directory(directory):
             if file.endswith('.py'):
                 file_path = os.path.join(root, file)
                 relative_path = os.path.relpath(file_path, directory)
-                functions = extract_functions_with_docstring(file_path)
+                repo = relative_path.split("/")[0]
+                functions = extract_functions_with_docstring(file_path, repo, relative_path)
                 if functions:
                     all_functions[relative_path] = functions
     return all_functions
@@ -135,7 +140,8 @@ def main():
                     references.append([gb])
 
                     data.append({
-                        "repo": repo,
+                        "repo": gold_func.repo,
+                        "path": gold_func.path,
                         "name": gold_func.name,
                         "docstring": gold_func.docstring,
                         "pred_docstring": pred_func.docstring,

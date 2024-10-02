@@ -8,7 +8,8 @@ dependencies = [
     "evaluate>=0.4.3",
     "pydantic>=2.9.2",
     "matplotlib>=3.5.0",
-    "seaborn>=0.11.0",
     "pandas>=1.3.0",
     "transformers>=4.0.0",
+    "altair>=5.4.1",
+    "vl-convert-python>=1.6.1",
 ]
