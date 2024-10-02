@@ -24,7 +24,7 @@ def process_data(data, tokenizer):
 def plot_distribution(df):
     for repo in df['repo'].unique():
         repo_df = df[df['repo'] == repo]
-        
+
         base = alt.Chart(repo_df).mark_area(
             opacity=0.5,
             interpolate='step'

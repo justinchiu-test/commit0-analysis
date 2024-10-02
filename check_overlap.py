@@ -144,7 +144,7 @@ def main():
                     # Tokenize the body and pred_body
                     reference = [word_tokenize(gold_func.body)]
                     candidate = word_tokenize(pred_func.body)
-                    
+
                     # Calculate sentence BLEU score
                     sentence_bleu_score = sentence_bleu(reference, candidate, smoothing_function=None)
 
