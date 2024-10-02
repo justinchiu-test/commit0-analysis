@@ -33,13 +33,13 @@ def plot_distribution(df):
             alt.Y('count():Q', stack=None, title='Count'),
             alt.Color('match:N', legend=alt.Legend(title='Match'))
         ).properties(
-            title=f'Distribution of Body Length for {repo}',
+            title=f'Distribution of Function Body Length for {repo}',
             width=500,
             height=300
         )
 
         chart = base.encode(
-            alt.X('body_length:Q', bin=alt.Bin(maxbins=30), title='Body Length')
+            alt.X('body_length:Q', bin=alt.Bin(maxbins=30), title='Length (tokens)')
         )
 
         chart.save(f'plots/length_distribution_{repo}.pdf')
