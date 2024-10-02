@@ -24,16 +24,22 @@ def process_data(data, tokenizer):
 def plot_distribution(df):
     for repo in df['repo'].unique():
         repo_df = df[df['repo'] == repo]
-        chart = alt.Chart(repo_df).mark_boxplot().encode(
-            x='match:N',
-            y='body_length:Q',
-            color='match:N'
+        
+        base = alt.Chart(repo_df).mark_area(
+            opacity=0.5,
+            interpolate='step'
+        ).encode(
+            alt.X('body_length:Q', bin=alt.Bin(maxbins=30), title='Body Length'),
+            alt.Y('count():Q', stack=None, title='Count'),
+            alt.Color('match:N', legend=alt.Legend(title='Match'))
         ).properties(
             title=f'Distribution of Body Length for {repo}',
-            width=400,
+            width=500,
             height=300
-        ).configure_axis(
-            labelAngle=45
+        )
+
+        chart = base.encode(
+            alt.X('body_length:Q', bin=alt.Bin(maxbins=30), title='Body Length')
         )
 
         chart.save(f'plots/length_distribution_{repo}.pdf')
@@ -49,7 +55,7 @@ def main():
     # Plot the distribution
     plot_distribution(df)
 
-    print("Plots saved as length_distribution_<repo>.html for each repo")
+    print("Plots saved as length_distribution_<repo>.pdf for each repo")
 
 if __name__ == "__main__":
     main()
