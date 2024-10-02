@@ -36,6 +36,14 @@ def plot_distribution(df):
             title=f'Distribution of Function Body Length for {repo}',
             width=500,
             height=300
+        ).configure_axis(
+            labelFontSize=15,
+            titleFontSize=18
+        ).configure_title(
+            fontSize=24
+        ).configure_legend(
+            labelFontSize=15,
+            titleFontSize=18
         )
 
         chart = base.encode(
