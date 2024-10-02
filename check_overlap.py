@@ -5,6 +5,8 @@ from difflib import SequenceMatcher
 from pydantic import BaseModel
 import evaluate
 import json
+from nltk.translate.bleu_score import sentence_bleu
+from nltk.tokenize import word_tokenize
 
 """ gold directory structure will have
 gold_dir / {repo}
@@ -139,6 +141,13 @@ def main():
                     predictions.append(pb)
                     references.append([gb])
 
+                    # Tokenize the body and pred_body
+                    reference = [word_tokenize(gold_func.body)]
+                    candidate = word_tokenize(pred_func.body)
+                    
+                    # Calculate sentence BLEU score
+                    sentence_bleu_score = sentence_bleu(reference, candidate, smoothing_function=None)
+
                     data.append({
                         "repo": gold_func.repo,
                         "path": gold_func.path,
@@ -147,6 +156,7 @@ def main():
                         "pred_docstring": pred_func.docstring,
                         "body": gold_func.body,
                         "pred_body": pred_func.body,
+                        "sentence_bleu": sentence_bleu_score,
                     })
 
                     """
