@@ -1,7 +1,6 @@
 import json
-import matplotlib.pyplot as plt
-import seaborn as sns
 import pandas as pd
+import altair as alt
 from transformers import AutoTokenizer
 
 def load_data(file_path):
@@ -18,20 +17,25 @@ def process_data(data, tokenizer):
             'repo': item['repo'],
             'body_length': tokenize_text(item['body'], tokenizer),
             'pred_body_length': tokenize_text(item['pred_body'], tokenizer),
-            'match': item['body'] == item['pred_body']
+            'match': 'Match' if item['body'] == item['pred_body'] else 'No Match'
         })
     return pd.DataFrame(processed_data)
 
 def plot_distribution(df):
-    plt.figure(figsize=(12, 6))
-    sns.boxplot(x='repo', y='body_length', hue='match', data=df)
-    plt.title('Distribution of Body Length by Repo and Match Status')
-    plt.xlabel('Repository')
-    plt.ylabel('Body Length (tokens)')
-    plt.xticks(rotation=45)
-    plt.tight_layout()
-    plt.savefig('length_distribution.png')
-    plt.close()
+    chart = alt.Chart(df).mark_boxplot().encode(
+        x='repo:N',
+        y='body_length:Q',
+        color='match:N',
+        column='match:N'
+    ).properties(
+        title='Distribution of Body Length by Repo and Match Status',
+        width=400,
+        height=300
+    ).configure_axis(
+        labelAngle=45
+    )
+
+    chart.save('length_distribution.html')
 
 def main():
     # Load the Sonnet tokenizer
@@ -44,7 +48,7 @@ def main():
     # Plot the distribution
     plot_distribution(df)
 
-    print("Plot saved as length_distribution.png")
+    print("Plot saved as length_distribution.html")
 
 if __name__ == "__main__":
     main()
