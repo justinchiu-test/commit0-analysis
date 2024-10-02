@@ -51,11 +51,10 @@ def plot_distribution(df):
             opacity=0.5,
             interpolate='step'
         ).encode(
-            alt.X('sentence_bleu:Q', bin=alt.Bin(maxbins=30), title='BLEU Score'),
-            alt.Y('count():Q', stack=None, title='Count'),
-            alt.Color('match:N', legend=alt.Legend(title='Match Type'))
+            alt.X('body_length:Q', bin=alt.Bin(maxbins=30), title='Length (tokens)'),
+            alt.Y('sentence_bleu:Q', stack=None, title='Sentence-BLEU'),
         ).properties(
-            title=f'Distribution of BLEU Scores for {repo}',
+            title=f'Distribution of BLEU Scores versus Token Length for {repo}',
             width=500,
             height=300
         )
