@@ -22,20 +22,21 @@ def process_data(data, tokenizer):
     return pd.DataFrame(processed_data)
 
 def plot_distribution(df):
-    chart = alt.Chart(df).mark_boxplot().encode(
-        x='repo:N',
-        y='body_length:Q',
-        color='match:N',
-        column='match:N'
-    ).properties(
-        title='Distribution of Body Length by Repo and Match Status',
-        width=400,
-        height=300
-    ).configure_axis(
-        labelAngle=45
-    )
+    for repo in df['repo'].unique():
+        repo_df = df[df['repo'] == repo]
+        chart = alt.Chart(repo_df).mark_boxplot().encode(
+            x='match:N',
+            y='body_length:Q',
+            color='match:N'
+        ).properties(
+            title=f'Distribution of Body Length for {repo}',
+            width=400,
+            height=300
+        ).configure_axis(
+            labelAngle=45
+        )
 
-    chart.save('length_distribution.pdf')
+        chart.save(f'length_distribution_{repo}.html')
 
 def main():
     # Load the Sonnet tokenizer
@@ -48,7 +49,7 @@ def main():
     # Plot the distribution
     plot_distribution(df)
 
-    print("Plot saved as length_distribution.html")
+    print("Plots saved as length_distribution_<repo>.html for each repo")
 
 if __name__ == "__main__":
     main()
